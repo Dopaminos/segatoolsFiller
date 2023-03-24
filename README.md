@@ -1,13 +1,13 @@
 # segatools.ini filler
 
-This programs works with *specific* folder structure
+This program works with *specific* folder structure
 
 - sunithm / 
 	- bin /		APPDATA, filler.exe
 	- amfs
 	- Option
 
-Program checks, if these foldesr are avaliable, checks your local IPv4 and fills it in segatools.ini
+Program checks, if these folders are avaliable, checks your local IPv4 and fills it in segatools.ini
 
 TODO: 
 - Launching game with all extensions through one .exe file (aqua start.bat, game start.bat, optional brokenithm server), 
