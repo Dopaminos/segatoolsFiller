@@ -1,5 +1,8 @@
-﻿using System.Net;
+using System.Net;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Management;
+
 
 class Program
 {
@@ -30,18 +33,34 @@ class Program
                 {
                     Directory.CreateDirectory(appDataPath);
                 }
+
+                // Start game and servers
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = "/c start /min start.bat & start /min brokenithm_server.exe & start /min aqua.bat",
+                    WorkingDirectory = Path.GetDirectoryName(iniPath),
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                var process = Process.Start(startInfo);
+
+                // Close processes
+                process.CloseMainWindow();
+                CloseProcesses();
             }
             else
             {
-                Console.WriteLine("amfs or Option folder not found.");
+                Console.WriteLine("amfs or Option folder was not found.");
             }
         }
         else
         {
-            Console.WriteLine("segatools.ini not found.");
+            Console.WriteLine("segatools.ini was not found.");
         }
-        Console.WriteLine("segatools.ini was successfully filled!");
     }
+
+
 
     static string FindIniFile(string folderPath)
     {
@@ -104,4 +123,48 @@ class Program
         iniContents = Regex.Replace(iniContents, $"appdata=([^\\r\\n]*)", $"appdata={Path.GetDirectoryName(iniPath)}\\APPDATA");
         File.WriteAllText(iniPath, iniContents);
     }
+
+    static void CloseProcesses()
+    {
+        // Close brokenithm_server.exe
+        Process[] processes = Process.GetProcessesByName("brokenithm_server");
+        foreach (Process process in processes)
+        {
+            process.Kill();
+        }
+
+        // Close start.bat and inject_64.exe
+        processes = Process.GetProcessesByName("cmd");
+        foreach (Process process in processes)
+        {
+            string cmdLine = GetCommandLine(process);
+            if (cmdLine.Contains("start.bat") || cmdLine.Contains("inject_64.exe"))
+            {
+                process.Kill();
+            }
+        }
+
+        // Close aqua.bat
+        processes = Process.GetProcessesByName("aqua");
+        foreach (Process process in processes)
+        {
+            process.Kill();
+        }
+    }
+
+    static string GetCommandLine(Process process)
+    {
+        string cmdLine = "";
+        using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId = " + process.Id))
+        {
+            foreach (ManagementObject @object in searcher.Get())
+            {
+                cmdLine = @object["CommandLine"]?.ToString();
+                break;
+            }
+        }
+        return cmdLine;
+    }
+
+
 }
